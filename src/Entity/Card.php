@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -40,6 +42,16 @@ class Card
      * @ORM\Column(type="text", nullable=true)
      */
     private $flavor;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\UserCard", mappedBy="card")
+     */
+    private $users;
+
+    public function __construct()
+    {
+        $this->users = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -102,6 +114,37 @@ class Card
     public function setFlavor(?string $flavor): self
     {
         $this->flavor = $flavor;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|UserCard[]
+     */
+    public function getUsers(): Collection
+    {
+        return $this->users;
+    }
+
+    public function addUser(UserCard $user): self
+    {
+        if (!$this->users->contains($user)) {
+            $this->users[] = $user;
+            $user->setCard($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(UserCard $user): self
+    {
+        if ($this->users->contains($user)) {
+            $this->users->removeElement($user);
+            // set the owning side to null (unless already changed)
+            if ($user->getCard() === $this) {
+                $user->setCard(null);
+            }
+        }
 
         return $this;
     }

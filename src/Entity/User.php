@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -37,6 +39,17 @@ class User implements UserInterface
      * @ORM\Column(type="string", length=255, unique=true)
      */
     private $apiToken;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\UserCard", mappedBy="user")
+     */
+    private $cards;
+
+    public function __construct()
+    {
+        $this->cards = new ArrayCollection();
+        $this->roles = ['ROLE_USER'];
+    }
 
     public function getId(): ?int
     {
@@ -124,6 +137,37 @@ class User implements UserInterface
     public function setApiToken(string $apiToken): self
     {
         $this->apiToken = $apiToken;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|UserCard[]
+     */
+    public function getCards(): Collection
+    {
+        return $this->cards;
+    }
+
+    public function addCard(UserCard $card): self
+    {
+        if (!$this->cards->contains($card)) {
+            $this->cards[] = $card;
+            $card->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCard(UserCard $card): self
+    {
+        if ($this->cards->contains($card)) {
+            $this->cards->removeElement($card);
+            // set the owning side to null (unless already changed)
+            if ($card->getUser() === $this) {
+                $card->setUser(null);
+            }
+        }
 
         return $this;
     }

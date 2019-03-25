@@ -14,6 +14,8 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 class TokenAuthenticator extends AbstractGuardAuthenticator
 {
+    public const HTTP_HEADER = 'Authorization';
+
     private $em;
 
     public function __construct(EntityManagerInterface $em)
@@ -28,7 +30,7 @@ class TokenAuthenticator extends AbstractGuardAuthenticator
      */
     public function supports(Request $request)
     {
-        return $request->headers->has('X-AUTH-TOKEN');
+        return $request->headers->has(self::HTTP_HEADER);
     }
 
     /**
@@ -37,8 +39,12 @@ class TokenAuthenticator extends AbstractGuardAuthenticator
      */
     public function getCredentials(Request $request)
     {
+        $authString = $request->headers->get(self::HTTP_HEADER);
+        $tokenInfo = strpos($authString, 'Token ');
+        $token = substr($authString, $tokenInfo + 6);
+
         return [
-            'token' => $request->headers->get('X-AUTH-TOKEN'),
+            'token' => $token,
         ];
     }
 
